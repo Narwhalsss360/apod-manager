@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "apod_manager"
+authors = [
+    { name = "Franklyn Vasquez", email = "franklynvasquez24@gmail.com" },
+]
+description = "CLI program helper/framework"
+readme = "README.md"
+license = { text = "MIT" }
+classifiers = [
+    "Programming Language :: Python :: 3",
+]
+version = "0.0.0"
+
+[project.scripts]
+apod-manager = "apod_manager.__main__:main"

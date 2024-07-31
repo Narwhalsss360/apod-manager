@@ -1,0 +1,8 @@
+Metadata-Version: 2.1
+Name: apod_manager
+Version: 0.0.0
+Summary: CLI program helper/framework
+Author-email: Franklyn Vasquez <franklynvasquez24@gmail.com>
+License: MIT
+Classifier: Programming Language :: Python :: 3
+Description-Content-Type: text/markdown
