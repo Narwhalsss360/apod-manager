@@ -35,6 +35,8 @@ def details(date: str) -> str:
 
 @cli.cmd(name='save-media', help='Save media of a specific apod. For today\'s, use `today` as date')
 def save_media(date: str) -> str:
+    if date == 'today':
+        date = datetime.now().strftime(APOD.DATETIME_FORMATTER)
     path: Path = manager.path_for_date(date)
     if not path.exists():
         return f'APOD for {date} does not exist, fetch using fetch-single {date}'
