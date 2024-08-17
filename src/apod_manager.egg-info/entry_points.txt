@@ -1,2 +1,0 @@
-[console_scripts]
-apod-manager = apod_manager.__main__:main
