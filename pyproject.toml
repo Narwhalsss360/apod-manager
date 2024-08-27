@@ -8,6 +8,10 @@ authors = [
     { name = "Franklyn Vasquez", email = "franklynvasquez24@gmail.com" },
 ]
 description = "CLI program helper/framework"
+dependencies = [
+    "requests",
+    "npycli"
+]
 readme = "README.md"
 license = { text = "MIT" }
 classifiers = [

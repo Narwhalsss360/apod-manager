@@ -1,11 +1,20 @@
 import os
-from typing import Callable
 from pathlib import Path
+from typing import Callable
 
 
 def set_background_nt(image: Path) -> None:
-    import ctypes
-    ctypes.windll.user32.SystemParametersInfoW(20, 0, str(image.absolute()), 0)
+    from ctypes import windll
+    from winreg import HKEYType, OpenKeyEx, HKEY_CURRENT_USER, KEY_WRITE, SetValueEx, REG_SZ, CloseKey
+    windll.user32.SystemParametersInfoW(20, 0, str(image.absolute()), 0)
+
+    desktop_key: HKEYType = OpenKeyEx(HKEY_CURRENT_USER, 'Control Panel\\Desktop', access=KEY_WRITE)
+    try:
+        SetValueEx(desktop_key, 'WallPaper', 0, REG_SZ, str(image.absolute()))
+    except Exception as e:
+        CloseKey(desktop_key)
+        raise e
+    CloseKey(desktop_key)
 
 
 OS_SETTERS: dict[str, Callable[[Path], None]] = {

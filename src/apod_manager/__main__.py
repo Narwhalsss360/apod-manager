@@ -1,9 +1,10 @@
-from sys import argv
-from pathlib import Path
 from dataclasses import fields
-from typing import Any, Optional
 from datetime import datetime
 from npycli import CLI, Command, EmptyEntriesError
+from pathlib import Path
+from sys import argv
+from typing import Any, Optional
+
 from . import manager
 from .apod import APOD
 from .set_background import set_background

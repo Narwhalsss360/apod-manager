@@ -1,13 +1,14 @@
-import os
-from typing import Optional
-from pathlib import Path
-from dataclasses import asdict
-from typing import Generator
 import json
+import os
 import re
+from dataclasses import asdict
+from pathlib import Path
 from requests import get, Response
-from .errors import ConfigurationError, APODManagerError
+from typing import Generator
+from typing import Optional
+
 from .apod import APOD
+from .errors import ConfigurationError, APODManagerError
 
 DEFAULTS_APODS_PATH: Path = Path.home() / Path('Pictures' if os.name == 'nt' else '') / 'apods'
 DEFAULTS_APODS_MEDIA_PATH: Path = DEFAULTS_APODS_PATH / 'images'
