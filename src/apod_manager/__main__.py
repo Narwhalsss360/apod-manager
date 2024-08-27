@@ -82,9 +82,9 @@ def retvals(command: Command, retval: Any) -> None:
 
 
 # @cli.errors()
-def errors(command: Optional[Command], exception: Exception) -> None:
+def errors(command: Command, exception: Exception) -> None:
     print(
-        f'A {exception.__class__.__name__} error occurred{"" if command is None else f" Running {command.name}"}:\n{exception}')
+        f'A {exception.__class__.__name__} error occurred Running {command.name}:\n{exception}')
 
 
 def main() -> None:
@@ -101,6 +101,8 @@ def main() -> None:
         cli.exec(argv[1:])
     except EmptyEntriesError:
         return
+    except Exception as e:
+        print(f'An error occurred: {e}')
 
 
 if __name__ == '__main__':
