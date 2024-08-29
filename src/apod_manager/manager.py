@@ -10,7 +10,7 @@ from typing import Optional
 from .apod import APOD
 from .errors import ConfigurationError, APODManagerError
 
-DEFAULTS_APODS_PATH: Path = Path.home() / Path('Pictures' if os.name == 'nt' else '') / 'apods'
+DEFAULTS_APODS_PATH: Path = Path.home() / 'apods'
 DEFAULTS_APODS_MEDIA_PATH: Path = DEFAULTS_APODS_PATH / 'images'
 DEFAULT_CONFIGURATION_PATH: Path = DEFAULTS_APODS_PATH / 'apod-manager.cfg.json'
 API_KEY: str = 'api_key'
@@ -58,6 +58,8 @@ def __ensure_loaded__() -> None:
 
 
 def generate_default_configuration() -> Path:
+    if not DEFAULT_CONFIGURATION_PATH.parent.exists():
+        DEFAULT_CONFIGURATION_PATH.parent.mkdir()
     with open(DEFAULT_CONFIGURATION_PATH, 'w', encoding='utf-8') as configuration_file:
         configuration_file.write(json.dumps(__DEFAULT_CONFIGURATION__, indent=4))
     return DEFAULT_CONFIGURATION_PATH
