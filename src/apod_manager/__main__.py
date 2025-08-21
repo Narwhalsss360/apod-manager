@@ -102,6 +102,8 @@ def main() -> None:
     except EmptyEntriesError:
         return
     except Exception as e:
+        if isinstance(e, KeyboardInterrupt):
+            return
         print(f'An error occurred: {e}')
 
 
