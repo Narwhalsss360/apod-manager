@@ -9,6 +9,7 @@ from . import manager
 from .apod import APOD
 from .set_background import set_background
 
+
 cli = CLI()
 
 
@@ -64,6 +65,7 @@ def help_cmd(command_name: Optional[str] = None) -> str:
         s: str = ''
         for command in cli.commands:
             s += f'{command} {command.help}\n'
+        s += f"Configuration file located at: {manager.DEFAULT_CONFIGURATION_PATH}"
         return s
     else:
         command: Optional[Command] = cli.get_command(command_name)

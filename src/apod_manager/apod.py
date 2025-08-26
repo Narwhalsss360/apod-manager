@@ -17,12 +17,13 @@ class APOD:
     DATETIME_FORMATTER = '%Y-%m-%d'
     DATE_FORMAT = 'YYYY-MM-DD'
     DATE_RE = r'\d{4}-\d{2}-\d{2}'
+    DEFAULT_URL_SENTINEL = "https://apod.nasa.gov/apod/astropix.html"
 
     date: str
     title: str
     explanation: str
-    url: str
     media_type: str
+    url: str = field(default=DEFAULT_URL_SENTINEL)
     hdurl: Optional[str] = field(default=None)
     concepts: Optional[str] = field(default=None)
     thumbnail_url: Optional[str] = field(default=None)
@@ -39,6 +40,14 @@ class APOD:
     @property
     def is_image(self) -> bool:
         return self.media_type == 'image'
+
+    @property
+    def is_video(self) -> bool:
+        return self.media_type == 'video'
+
+    @property
+    def is_other(self) -> bool:
+        return self.media_type == 'other'
 
     @property
     def datetime(self) -> datetime:
@@ -111,8 +120,10 @@ class APOD:
             raise DateFormatError(f'date must follow format {APOD.DATE_FORMAT}')
         if not self.title:
             raise ValueError('APOD must have title')
-        if self.url is None and self.hdurl is None:
-            raise ValueError('APOD must have at least url or hdurl')
+        if self.url is APOD.DEFAULT_URL_SENTINEL:
+            if not self.is_other:
+                raise ValueError(f"Invalid URL for 'other' media type.")
+            self.url = f'https://apod.nasa.gov/apod/ap{self.date[2:4]}{self.date[5:7]}{self.date[8:10]}.html'
 
     def __post_init__(self) -> None:
         self._validate_data()
