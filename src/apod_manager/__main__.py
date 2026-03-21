@@ -107,6 +107,7 @@ def main() -> None:
         if isinstance(e, KeyboardInterrupt):
             return
         print(f'An error occurred: {e}')
+        exit(1)
 
 
 if __name__ == '__main__':
