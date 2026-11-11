@@ -133,6 +133,9 @@ def load_apod(path_or_date: str | Path | datetime) -> APOD:
     elif isinstance(path_or_date, datetime):
         path_or_date = path_for(path_or_date)
 
+    if not path_or_date.exists():
+        raise FileNotFoundError("the APOD data for the specified date is not downloaded")
+
     return APOD.from_dict(json.loads(read_all(path_or_date)))
 
 
