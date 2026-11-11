@@ -1,7 +1,11 @@
 from .apod import APOD
-from .errors import *
+from .cli import main
+from .errors import APODManagerError, ConfigurationError, DateFormatError
 
-if __name__ == '__main__':
-    from .__main__ import main
-
-    main()
+__all__ = [
+    "APOD",
+    "APODManagerError",
+    "ConfigurationError",
+    "DateFormatError",
+    "main",
+]

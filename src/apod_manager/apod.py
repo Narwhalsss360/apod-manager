@@ -1,132 +1,126 @@
 from __future__ import annotations
 
-import json
 import re
 from dataclasses import dataclass, field
 from datetime import datetime
-from pathlib import Path
-from requests import get, Response
-from typing import Optional
+from typing import Any, ClassVar, TypeGuard, cast
 
-from .errors import DateFormatError
+from apod_manager.errors import DateFormatError
 
 
-@dataclass
+@dataclass(frozen=True, slots=True)
 class APOD:
-    API_ENDPOINT = 'https://api.nasa.gov/planetary/apod'
-    DATETIME_FORMATTER = '%Y-%m-%d'
-    DATE_FORMAT = 'YYYY-MM-DD'
-    DATE_RE = r'\d{4}-\d{2}-\d{2}'
-    DEFAULT_URL_SENTINEL = "https://apod.nasa.gov/apod/astropix.html"
+    API_ENDPOINT: ClassVar[str] = "https://science.nasa.gov/wp-json/wp/v2/apod-basic"
+    API_DATETIME_FORMATTER: ClassVar[str] = "%y%m%d"
+    API_DATE_FORMAT: ClassVar[str] = "YYMMDD"
+    API_DATE_RE: ClassVar[str] = r"\d{2}\d{2}\d{2}"
 
-    date: str
-    title: str
-    explanation: str
-    media_type: str
-    url: str = field(default=DEFAULT_URL_SENTINEL)
-    hdurl: Optional[str] = field(default=None)
-    concepts: Optional[str] = field(default=None)
-    thumbnail_url: Optional[str] = field(default=None)
-    copyright: Optional[str] = field(default=None)
-    resources: Optional[dict] = field(default=None)
-    service_version: Optional[str] = field(default=None)
+    date: str = field(hash=True)
+    post_id: int = field(hash=False)
+    title: str = field(hash=False)
+    permalink: str = field(hash=False)
+    media_type: str = field(hash=False)
+    explanation: str = field(hash=False)
+    hdurl: str | None = field(default=None)
 
     @property
     def best_url(self) -> str:
         if self.hdurl is not None:
             return self.hdurl
-        return self.url
+        return self.permalink
 
     @property
     def is_image(self) -> bool:
-        return self.media_type == 'image'
+        return self.media_type == "image"
 
     @property
     def is_video(self) -> bool:
-        return self.media_type == 'video'
+        return self.media_type == "video"
 
     @property
     def is_other(self) -> bool:
-        return self.media_type == 'other'
+        return self.media_type == "other"
 
     @property
     def datetime(self) -> datetime:
-        return datetime(year=int(self.date[0:4]), month=int(self.date[5:7]), day=int(self.date[8:10]))
+        return datetime(
+            year=int(self.date[0:4]),
+            month=int(self.date[5:7]),
+            day=int(self.date[8:10]),
+        )
 
     @property
     def media_extension(self) -> str:
-        ext = self.best_url[self.best_url.rindex('.') + 1:]
+        ext = self.best_url[self.best_url.rindex(".") + 1 :]
         if len(ext) > 4:
-            ext = 'jpg'
+            ext = "jpg"
         return ext
 
     @staticmethod
-    def fetch_single(api_key: str, date: Optional[str | datetime]) -> APOD:
-        if date is None:
-            date: datetime = datetime.now()
-        if isinstance(date, datetime):
-            date: str = date.strftime(APOD.DATETIME_FORMATTER)
-        if not re.match(APOD.DATE_RE, date):
-            raise DateFormatError(f'date must follow format {APOD.DATE_FORMAT}')
-
-        response: Response = get(APOD.API_ENDPOINT, params={
-            'api_key': api_key,
-            'date': date
-        })
-        response.raise_for_status()
-        return APOD(**response.json())
+    def datetime_to_api_str(date: datetime) -> str:
+        return date.strftime(APOD.API_DATETIME_FORMATTER)
 
     @staticmethod
-    def load_from(file: Path) -> APOD:
-        with open(file, 'r', encoding='utf-8') as apod_file:
-            return APOD(**json.loads(apod_file.read()))
+    def date_as_api_str(str_or_datetime: datetime | str) -> str:
+        if isinstance(str_or_datetime, datetime):
+            return APOD.datetime_to_api_str(str_or_datetime)
+        str_or_datetime = str_or_datetime.strip()
+        if not re.match(APOD.API_DATE_RE, str_or_datetime):
+            raise DateFormatError(
+                f"The give date string was not of the format {APOD.API_DATE_FORMAT}."
+            )
+        return str_or_datetime
 
     @staticmethod
-    def fetch_random(api_key: str, count: int) -> list[APOD]:
-        if not (1 <= count <= 100):
-            raise ValueError(f'`count` must be between (0, 100]')
+    def from_dict(data: dict[Any, Any] | Any) -> APOD:
+        if not isinstance(data, dict):
+            raise TypeError("data must be of type dict.")
 
-        response: Response = get(APOD.API_ENDPOINT, params={
-            'api_key': api_key,
-            'count': count
-        })
-        return [APOD(**data) for data in response.json()]
+        data = cast(dict[Any, Any], data)
+        date: Any = data.get("date", None)
+        post_id: Any = data.get("post_id", None)
+        title: Any = data.get("title", None)
+        permalink: Any = data.get("permalink", None)
+        media_type: Any = data.get("media_type", None)
+        explanation: Any = data.get("explanation", None)
+        hdurl: Any = data.get("hdurl", None)
 
-    @staticmethod
-    def fetch_range(api_key: str, start_date: datetime | str, end_date: datetime | str) -> list[APOD]:
-        if start_date is None:
-            start_date: datetime = datetime.now()
-        if isinstance(start_date, datetime):
-            start_date: str = start_date.strftime(APOD.DATETIME_FORMATTER)
-        if not re.match(APOD.DATE_RE, start_date):
-            raise DateFormatError(f'start_date must follow format {APOD.DATE_FORMAT}')
+        def require[T](value: Any, name: str, value_type: type[T]) -> TypeGuard[T]:
+            if isinstance(value, value_type):
+                return True
+            raise TypeError(
+                f"Value {name} must be of type {value_type.__name__}, was {type(value).__name__}."
+            )
 
-        if end_date is None:
-            end_date: datetime = datetime.now()
-        if isinstance(end_date, datetime):
-            end_date: str = end_date.strftime(APOD.DATETIME_FORMATTER)
-        if not re.match(APOD.DATE_RE, end_date):
-            raise DateFormatError(f'end_date must follow format {APOD.DATE_FORMAT}')
+        def optional[T](
+            value: Any, name: str, value_type: type[T]
+        ) -> TypeGuard[T | None]:
+            if value is None:
+                return True
 
-        response: Response = get(APOD.API_ENDPOINT, params={
-            'api_key': api_key,
-            'start_date': start_date,
-            'end_date': end_date
-        })
-        return [APOD(**data) for data in response.json()]
+            if isinstance(value, value_type):
+                return True
+            raise TypeError(
+                f"Value {name} must be of type {value_type.__name__}, was {type(value).__name__}."
+            )
 
-    def _validate_data(self) -> None:
-        if not re.match(APOD.DATE_RE, self.date):
-            raise DateFormatError(f'date must follow format {APOD.DATE_FORMAT}')
-        if not self.title:
-            raise ValueError('APOD must have title')
-        if self.url is APOD.DEFAULT_URL_SENTINEL:
-            if not self.is_other:
-                raise ValueError(f"Invalid URL for 'other' media type.")
-            self.url = f'https://apod.nasa.gov/apod/ap{self.date[2:4]}{self.date[5:7]}{self.date[8:10]}.html'
+        assert require(date, "date", str)
+        assert require(post_id, "post_id", int)
+        assert require(title, "title", str)
+        assert require(permalink, "permalink", str)
+        assert require(media_type, "media_type", str)
+        assert require(explanation, "explanation", str)
+        assert optional(hdurl, "hdurl", str)
 
-    def __post_init__(self) -> None:
-        self._validate_data()
+        return APOD(
+            date=date,
+            post_id=post_id,
+            title=title,
+            permalink=permalink,
+            media_type=media_type,
+            explanation=explanation,
+            hdurl=hdurl,
+        )
 
     def __str__(self) -> str:
-        return f'{self.date} - {self.media_type} - {self.title}'
+        return f"{self.date} - {self.media_type} - {self.title}"

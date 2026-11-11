@@ -8,6 +8,7 @@ authors = [
     { name = "Franklyn Vasquez", email = "franklynvasquez24@gmail.com" },
 ]
 description = "CLI program helper/framework"
+requires-python = ">=3.12"
 dependencies = [
     "requests",
     "npycli"
